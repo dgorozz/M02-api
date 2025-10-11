@@ -3,7 +3,7 @@ from typing import Optional
 from datetime import datetime
 import string
 
-from api.config import NUM_PRODUCTS_PER_SLOT, NUM_SLOTS_PER_ROW
+from api.config import NUM_PRODUCTS_PER_SLOT, NUM_SLOTS_PER_ROW, NUM_ROWS
 
 
 # =========== PRODUCT ============
@@ -40,8 +40,8 @@ class SlotCreate(SlotBase):
 
     @field_validator("code")
     def validate_code(value: str):
-        if value[0] not in string.ascii_uppercase:
-            raise ValueError(f"Code must start with an uppercase letter i.e. 'A2'")
+        if value[0] not in string.ascii_uppercase[:NUM_ROWS]:
+            raise ValueError(f"Code must start with an uppercase letter and between A and {string.ascii_uppercase[NUM_ROWS-1]} i.e. 'A2'")
         if value[1] not in string.digits[1:NUM_SLOTS_PER_ROW+1]:
             raise ValueError(f"Code must end with a digit between 1 and {NUM_SLOTS_PER_ROW} i.e. 'B9'")
         return value
