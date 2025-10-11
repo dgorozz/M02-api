@@ -1,0 +1,69 @@
+from fastapi import FastAPI, Depends
+from fastapi.responses import Response
+from fastapi.exceptions import HTTPException
+import uvicorn
+from sqlalchemy.orm import Session
+
+from datetime import datetime
+
+from api.database import engine, get_db
+from api.models import DecBase
+import api.models as models
+import api.schemas as schemas
+from api.routers.products import router as products_router
+from api.routers.slots import router as slots_router, get_slot_by_code
+from api.routers.transactions import router as transactions_router
+
+
+app = FastAPI()
+app.include_router(products_router)
+app.include_router(slots_router)
+app.include_router(transactions_router)
+
+DecBase.metadata.create_all(bind=engine)
+
+
+@app.get("/")
+def index():
+    return Response({"msg": "This is the MACHINE api"})
+
+
+@app.post("/buy")
+def buy(data: schemas.PaymentRequest, db: Session = Depends(get_db)):
+    slot_code = data.slot
+    amount = data.amount
+
+    slot: models.Slot = get_slot_by_code(db, slot_code)
+
+    if not slot:
+        raise HTTPException(status_code=404, detail=f"Slot with code {slot_code} not found")
+
+    if not slot.product_id:
+        raise HTTPException(status_code=402, detail=f"Slot with no product associated")
+
+    if slot.quantity == 0:
+        raise HTTPException(status_code=402, detail=f"Empty slot")
+    
+    if amount < slot.product.price:
+        raise HTTPException(status_code=402, detail=f"Product price is {slot.product.price} and you gave {amount}. Insufficient")
+    
+    # remove product from slot
+    slot.quantity -= 1
+
+    # create transaction
+    transaction = models.Transaction(**schemas.TransactionCreate(
+        product_id = slot.product_id,
+        slot_id=slot.id,
+        date=datetime.today(),
+        amount=amount
+    ).model_dump())
+
+    # apply changes to database
+    db.add(transaction); db.commit()
+    db.refresh(slot); db.refresh(transaction)
+
+    return transaction
+
+
+if __name__ == "__main__":
+    uvicorn.run("api.main:app", host="localhost", port=8000)
