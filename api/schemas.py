@@ -84,6 +84,16 @@ class PaymentRequest(BaseModel):
     amount: int = Field(..., gt=0)
 
 
+# =========== PAYMENT ============
+
+class MachineResponse(BaseModel):
+    products: list[ProductResponse]
+    slots: list[SlotResponse]
+    transactions: list[TransactionResponse]
+
+    class Config:
+        orm_mode = True
+
 __all__ = [
     "ProductCreate",
     "ProductUpdate",

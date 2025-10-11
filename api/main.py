@@ -10,9 +10,9 @@ from api.database import engine, get_db
 from api.models import DecBase
 import api.models as models
 import api.schemas as schemas
-from api.routers.products import router as products_router
-from api.routers.slots import router as slots_router, get_slot_by_code
-from api.routers.transactions import router as transactions_router
+from api.routers.products import router as products_router, list_products
+from api.routers.slots import router as slots_router, get_slot_by_code, list_slots
+from api.routers.transactions import router as transactions_router, list_transactions
 
 
 app = FastAPI()
@@ -26,6 +26,18 @@ DecBase.metadata.create_all(bind=engine)
 @app.get("/")
 def index():
     return Response({"msg": "This is the MACHINE api"})
+
+
+@app.get("/info", response_model=schemas.MachineResponse)
+def get_info(db: Session = Depends(get_db)):
+    products = list_products(db)
+    slots = list_slots(db)
+    transactions = list_transactions(db)
+    return schemas.MachineResponse(
+        slots=[schemas.SlotResponse.model_validate(s, from_attributes=True) for s in slots], 
+        products=[schemas.ProductResponse.model_validate(p, from_attributes=True) for p in products], 
+        transactions=[schemas.TransactionResponse.model_validate(t, from_attributes=True) for t in transactions]
+    )
 
 
 @app.post("/buy")
