@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from typing import Optional
 from datetime import datetime
 import string
@@ -24,8 +24,7 @@ class ProductResponse(ProductBase):
     name: str
     price: int
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # =========== SLOT ============
@@ -55,8 +54,7 @@ class SlotResponse(SlotBase):
     code: str
     capacity: int
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # =========== TRANSACTION ============
@@ -73,8 +71,7 @@ class TransactionCreate(TransactionBase):
 class TransactionResponse(TransactionBase):
     id: int
 
-    class Config:
-        orm_mode=True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # =========== PAYMENT ============
@@ -91,13 +88,13 @@ class MachineResponse(BaseModel):
     slots: list[SlotResponse]
     transactions: list[TransactionResponse]
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
-__all__ = [
-    "ProductCreate",
-    "ProductUpdate",
-    "SlotCreate",
-    "SlotUpdate",
-    "TransactionCreate"
-]
+
+# __all__ = [
+#     "ProductCreate",
+#     "ProductUpdate",
+#     "SlotCreate",
+#     "SlotUpdate",
+#     "TransactionCreate"
+# ]
