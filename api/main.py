@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, status
 from fastapi.responses import Response
 from fastapi.exceptions import HTTPException
 import uvicorn
@@ -48,16 +48,16 @@ def buy(data: schemas.PaymentRequest, db: Session = Depends(get_db)):
     slot: models.Slot = get_slot_by_code(db, slot_code)
 
     if not slot:
-        raise HTTPException(status_code=404, detail=f"Slot with code {slot_code} not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Slot with code {slot_code} not found")
 
     if not slot.product_id:
-        raise HTTPException(status_code=402, detail=f"Slot with no product associated")
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=f"Slot with no product associated")
 
     if slot.quantity == 0:
-        raise HTTPException(status_code=402, detail=f"Empty slot")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Empty slot")
     
     if amount < slot.product.price:
-        raise HTTPException(status_code=402, detail=f"Product price is {slot.product.price} and you gave {amount}. Insufficient")
+        raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED, detail=f"Product price is {slot.product.price} and you gave {amount}. Insufficient")
     
     # remove product from slot
     slot.quantity -= 1
