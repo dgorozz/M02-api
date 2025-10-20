@@ -70,63 +70,65 @@ def test_get_slot(session: Session, client: TestClient):
     assert data["id"] == slot.id
 
 
-# def test_patch_product(session: Session, client: TestClient):
+def test_patch_slot(session: Session, client: TestClient):
 
-#     product = _add_product_to_db(session, "Kinder Bueno", 290)
+    product_1 = _add_product_to_db(session, "Kinder Bueno", 290)
+    product_2 = _add_product_to_db(session, "Twix", 150)
+    slot = _add_slot_to_db(session, "A1", 3, 0, product_1.id)
 
-#     new_name = "Doritos"
-#     response = client.patch(f"/products/{product.id}", json={"name": new_name})
+    new_product_id = product_2.id
+    response = client.patch(f"/slots/{slot.id}", json={"product_id": new_product_id})
 
-#     data = response.json()
-#     assert response.status_code == 200
-#     assert data["name"] == new_name
+    data = response.json()
+    assert response.status_code == 200
+    assert data["product_id"] == product_2.id
 
-#     new_price = 250
-#     response = client.patch(f"/products/{product.id}", json={"price": new_price})
+    new_quantity = 3
+    response = client.patch(f"/slots/{slot.id}", json={"quantity": new_quantity})
 
-#     data = response.json()
-#     assert response.status_code == 200
-#     assert data["price"] == new_price
+    data = response.json()
+    assert response.status_code == 200
+    assert data["quantity"] == new_quantity
 
-#     new_data = {"name": "Bits", "price": 50}
-#     response = client.patch(f"/products/{product.id}", json=new_data)
+    new_data = {"product_id": 1, "quantity": 2}
+    response = client.patch(f"/slots/{slot.id}", json=new_data)
 
-#     data = response.json()
-#     assert response.status_code == 200
-#     assert data["name"] == new_data["name"]
-#     assert data["price"] == new_data["price"]
+    data = response.json()
+    assert response.status_code == 200
+    assert data["product_id"] == new_data["product_id"]
+    assert data["quantity"] == new_data["quantity"]
 
 
-# def test_delete_product(session: Session, client: TestClient):
+def test_delete_slot(session: Session, client: TestClient):
 
-#     product = _add_product_to_db(session, "Kinder Bueno", 290)
+    slot = _add_slot_to_db(session, "A1", 3)
 
-#     response = client.delete(f"/products/{product.id}")
-#     product_in_db = session.get(Product, product.id)
+    response = client.delete(f"/slots/{slot.id}")
+    slot_in_db = session.get(Slot, slot.id)
 
-#     assert response.status_code == 204
-#     assert product_in_db is None
+    assert response.status_code == 204
+    assert slot_in_db is None
  
 
-# def test_get_all_products(session: Session, client: TestClient):
+def test_get_all_slots(session: Session, client: TestClient):
 
-#     products_raw = [
-#         {"name": "Kinder Bueno", "price": 290},
-#         {"name": "Twix", "price": 180},
-#         {"name": "Puleva", "price": 150}
-#     ]
+    products_raw = [
+        {"code": "A1", "product_id": 1},
+        {"code": "A2", "product_id": 1},
+        {"code": "A3", "product_id": 1}
+    ]
 
-#     products = [_add_product_to_db(session, **product) for product in products_raw]
+    products = [_add_product_to_db(session, **product) for product in products_raw]
 
-#     response = client.get("/products")
+    response = client.get("/products")
 
-#     data = response.json()
+    data = response.json()
 
-#     assert response.status_code == 200
-#     for i, product in enumerate(products):
-#         assert data[i]["name"] == product.name
-#         assert data[i]["price"] == product.price
-#         assert data[i]["id"] == product.id
+    assert response.status_code == 200
+    for i, product in enumerate(products):
+        assert data[i]["name"] == product.name
+        assert data[i]["price"] == product.price
+        assert data[i]["id"] == product.id
 
 
 # def test_delete_non_existing_product(client: TestClient):
